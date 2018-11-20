@@ -11,7 +11,7 @@
     
     <!--begin.rcode
     library(ggplot2)
-    dat <- read.csv("data/data/twoFacCfa_data.csv")
+    dat <- read.csv("~/Statistics/simulation/data/twoFacCfa_data.csv")
     ggplot(dat[which(dat$par == "F1~~F2"),], aes(x = N, y = power)) +
       geom_line() +
       geom_hline(yintercept = .8, linetype = 2) +
