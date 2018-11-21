@@ -5,7 +5,7 @@ date: "November 21, 2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 models.agg <- readRDS("JID_semipar_table.rds")
 
@@ -208,7 +208,7 @@ for (xycor in XYCor) {
 
 When our simulations are finished, we can aggregate the results of our models and calculate power.
 
-```{r eval = F, cache = T, echo = T}
+```{r eval = F, echo = T}
 
 # Specify the information we want to aggregate
 aggvars <- c("est", "se", "z", "pvalue", "ci.lower", 
