@@ -266,7 +266,7 @@ With this simulation, we can be confident that a minimum sample size of around 2
 
 References
 
-Preacher, K. J. (2009). Testing complex correlational hypotheses with structural equation modeling. *Structural Equation Modeling: A Multidisciplinary Journal, 13*, 520-543. [doi.org/10.1207/s15328007sem1304_2]('https://doi.org/10.1207/s15328007sem1304_2)
+Preacher, K. J. (2009). Testing complex correlational hypotheses with structural equation modeling. *Structural Equation Modeling: A Multidisciplinary Journal, 13*, 520-543. [doi.org/10.1207/s15328007sem1304_2](https://doi.org/10.1207/s15328007sem1304_2)
 
 Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. *Journal of Statistical Software, 48*, 1-36. http://www.jstatsoft.org/v48/i02/
 
