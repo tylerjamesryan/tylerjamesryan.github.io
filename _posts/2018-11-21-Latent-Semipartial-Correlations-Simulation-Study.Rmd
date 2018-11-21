@@ -3,6 +3,7 @@ title: "Latent Semi-partial Correlations - Simulation"
 author: "Tyler J. Ryan"
 date: "November 21, 2018"
 output: html_document
+layout: post
 ---
 
 ```{r setup, include=FALSE}
