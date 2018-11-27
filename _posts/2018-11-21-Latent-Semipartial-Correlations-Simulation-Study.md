@@ -1,29 +1,21 @@
----
-title: "Latent Semi-partial Correlations - Simulation"
-author: "Tyler J. Ryan"
-date: "November 21, 2018"
-output: html_document
-layout: post
----
+Latent Semi-partial Correlations - Simulation
+================
+Tyler J. Ryan
+November 21, 2018
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-models.agg <- readRDS("JID_semipar_table.rds")
-
-```
-
-Preacher (2009) provides a framework for testing correlational hypotheses in an SEM framework. The following is R code for a simulation study to estimate power for testing semi-partial correaltional hypotheses between two latent variables ($x$,$y$), controlling for a third variable ($w$) in $y$. 
+[Preacher (2009)](https://scholar.google.com/scholar?cluster=3579032783597219013&hl=en&as_sdt=0,36) provides a framework for testing correlational hypotheses in an SEM framework. The following is R code for a simulation study to estimate power for testing semi-partial correlation hypotheses between two latent variables (*x*,*y*), controlling for a third variable (*w*) in *y*.
 
 We will be using the `lavaan` package (Rosseel, 2012).
 
-```{r echo = T, message=F}
+``` r
 library(lavaan)
 ```
 
-We create a function `latentSemipartCor.datagen()`, which takes a sample size `N`, and a set of correlations bewteen the three variables, `XYcor`, `XWcor`, and `YWcor`. The function requires the `mvtnorm` package to be installed.
+We create a function `latentSemipartCor.datagen()`, which takes a sample size `N`, and a set of correlations between the three variables, `XYcor`, `XWcor`, and `YWcor`. The function requires the `mvtnorm` package to be installed.
 
-```{r eval = F, echo = T}
-latentSemipartCor.datagen <- function(N = N, XYcor = XYcor, XWcor = XWcor, YWcor = YWcor) {
+``` r
+latentSemipartCor.datagen <- function(N = N, XYcor = XYcor, 
+                                      XWcor = XWcor, YWcor = YWcor) {
   
   require(mvtnorm) # required to general random MVN latent variables
   
@@ -77,13 +69,11 @@ latentSemipartCor.datagen <- function(N = N, XYcor = XYcor, XWcor = XWcor, YWcor
 return(X)
 
 }
-
 ```
 
 We then define the model to be estimated.
 
-```{r, eval = T, echo = TRUE}
-
+``` r
 model <- "
 
   # Define first order latent variables
@@ -123,29 +113,27 @@ model <- "
 
 We can plot the model diagram with `semPlot` (Epskamp & Stuber, 2017) package.
 
-```{r echo = T, fig.width=8, fig.height=5}
+``` r
 library(semPlot)
 semPaths(lavaanify(model))
-
 ```
 
-Next, we define our population parameters from which to generate our data. For the present simulation, we hold $\phi_{xw}$ constant at -.8, vary $\phi_{xy}$ between -.5 and -.2 by increments of .05, vary $\phi_{yw}$ between .2 and .5 by increments of .05, and set our observed $N$ for each set of samples to vary bewteen 250 and 350 with increments of 25. We also set the number of samples to generate for each sample size and combination of latent correlations to 1000. 
+![](2018-11-21-Latent-Semipartial-Correlations-Simulation-Study_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-```{r echo = T, eval = F}
+Next, we define our population parameters from which to generate our data. For the present simulation, we hold *ϕ*<sub>*x**w*</sub> constant at -.8, vary *ϕ*<sub>*x**y*</sub> between -.3 and -.2 by increments of .05, vary *ϕ*<sub>*y**w*</sub> between .2 and .3 by increments of .05, and set our observed *N* for each set of samples to vary between 250 and 350 with increments of 25. We also set the number of samples to generate for each sample size and combination of latent correlations to 1000.
 
-XYCor <- seq(-.2, -.5, -.05)
+``` r
+XYCor <- seq(-.2, -.3, -.05)
 XWcor <- -.8
-YWCor <- seq(.2, .5, .05)
+YWCor <- seq(.2, .3, .05)
 Ns <- seq(250, 350, by = 25)
 
 iterations <- 1000
-
 ```
 
-We create an empty `models` object to save each generated model summary to. The nested `for` loop structure iterates through each combination of latent correlations and sample size, generating and analyzing 1000 simulated datasets for each. Summaries for the parameters and fit statistics of each model are saved to the `models` object. For 1000 iterations for each combination, the whole process takes several hours, but could be sped up with parallel processing.
+We create an empty `models` object to save each generated model summary to. The nested `for` loop structure iterates through each combination of latent correlations and sample size, generating and analyzing 1000 simulated data sets for each. Summaries for the parameters and fit statistics of each model are saved to the `models` object. For 1000 iterations for each combination, the whole process takes several hours, but could be sped up with parallel processing.
 
-```{r echo = T, eval = F}
-
+``` r
 models <- data.frame()
 
 for (xycor in XYCor) {
@@ -160,7 +148,10 @@ for (xycor in XYCor) {
     simulations <- replicate(iterations, simplify = F, expr = { 
     
       # Generate data with specified population parameters
-      observed <- PID_datagen(N = N, XYcor = xycor, XWcor = XWcor, YWcor = ywcor)
+      observed <- PID_datagen(N = N, 
+                              XYcor = xycor, 
+                              XWcor = XWcor, 
+                              YWcor = ywcor)
       
       # Run model with lavaan() function
       try(mod <- lavaan(model, observed, auto.fix.first = T, auto.var = T))
@@ -204,13 +195,11 @@ for (xycor in XYCor) {
     }
   }
 }
-
 ```
 
 When our simulations are finished, we can aggregate the results of our models and calculate power.
 
-```{r eval = F, echo = T}
-
+``` r
 # Specify the information we want to aggregate
 aggvars <- c("est", "se", "z", "pvalue", "ci.lower", 
              "ci.upper", "npar", "chisq", "df",      
@@ -224,52 +213,40 @@ aggby <- list("lhs" = models$lhs, "op" = models$op, "rhs" = models$rhs,
 models.agg <- aggregate(models[, aggvars], by = aggby, mean)
 
 # Calculate power as the percentage of significant p-values for each parameter. 
-models.agg$power <- unlist((aggregate(models[, "pvalue"], by = aggby, function(x) mean(x < .05, na.rm = T)))$x)
+models.agg$power <- unlist((aggregate(models[, "pvalue"], 
+                                      by = aggby, 
+                                      function(x) mean(x < .05, na.rm = T)))$x)
 models.agg$par <- with(models.agg, paste0(lhs, op, rhs))
 models.agg[which(models.agg$par == "")]
 ```
 
-We can plot the power of our tests of significance for the semi-partial correlation of interest as a function of the estimate and sample size. We will require the `ggplot2` package. If our minimum effect size for the semi-partial correlation is .1 (-.1), we can plot this as two vertical lines on the x-axis. We also plot our targeted level of power (.8) as a horizonal line on the y-axis.
+We can plot the power of our tests of significance for the semi-partial correlation of interest as a function of the estimate and sample size. We will require the `ggplot2` package. If our minimum effect size for the semi-partial correlation is *ϕ*<sub>*x*(*y*.*w*)</sub> = ± .10, we can plot this as two vertical lines on the x-axis. We also plot our targeted level of power (.8) as a horizontal line on the y-axis.
 
+![](2018-11-21-Latent-Semipartial-Correlations-Simulation-Study_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
+We can also look at a table of the estimates we are concerned about.
 
-```{r, fig.width=8, fig.height=8}
-library(ggplot2)
-
-ggplot(models.agg[which(models.agg$par == "X2~~Y2"),], aes(x = est, y = power, linetype = as.factor(N))) +
-  geom_line(size = .5) + 
-  geom_hline(yintercept = .8, linetype = 2, alpha = .5) + 
-  geom_vline(xintercept = .11, linetype = 2, alpha = .5) + 
-  geom_vline(xintercept = -.11, linetype = 2, alpha = .5) + 
-  theme_bw() + 
-  theme(legend.position = c(.85, .35),
-        legend.box.margin = margin(1, 1, 1, 1), 
-        legend.box.background = element_rect(),
-        legend.key.width = unit(.75, units = "in"),
-        axis.title = element_text(size = rel(1.5))) +
-  labs(linetype = "N") + xlab(label = expression(phi[xy.w]))
-
-
-
+``` r
+models.agg[which(models.agg$par == "X2~~Y2" & 
+                 models.agg$est >= .1 &
+                 models.agg$est <=.12),
+           c("par", "N", "est", "se", 
+             "cfi", "rmsea", "power")]
 ```
 
-We can also look at a table of the estimates we are concerned about. 
+    ##         par   N       est         se       cfi      rmsea power
+    ## 8051 X2~~Y2 250 0.1180549 0.03898905 0.9860467 0.03000852 0.791
+    ## 8115 X2~~Y2 275 0.1182516 0.03734902 0.9869298 0.02903771 0.824
+    ## 8179 X2~~Y2 300 0.1169197 0.03564676 0.9872534 0.02890756 0.843
+    ## 8243 X2~~Y2 325 0.1173100 0.03429464 0.9876632 0.02847929 0.863
+    ## 8307 X2~~Y2 350 0.1190771 0.03313717 0.9877304 0.02846306 0.884
 
-```{r eval = T, echo = T}
-
-models.agg[which(models.agg$par == "X2~~Y2" & models.agg$est >= .1 & models.agg$est <=.12),
-           c("par", "N", "est", "se", "cfi", "rmsea", "power")]
-
-```
-
-With this simulation, we can be confident that a minimum sample size of around 275 is sufficient for testing a latent semi-partial correlation.
-
+With this simulation, we can be confident that a minimum sample size of around 300 is sufficient for testing a latent semi-partial correlation.
 
 References
 
-Preacher, K. J. (2009). Testing complex correlational hypotheses with structural equation modeling. *Structural Equation Modeling: A Multidisciplinary Journal, 13*, 520-543. [doi.org/10.1207/s15328007sem1304_2](https://doi.org/10.1207/s15328007sem1304_2)
+Preacher, K. J. (2009). Testing complex correlational hypotheses with structural equation modeling. *Structural Equation Modeling: A Multidisciplinary Journal, 13*, 520-543. [doi.org/10.1207/s15328007sem1304\_2](https://doi.org/10.1207/s15328007sem1304_2)
 
-Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. *Journal of Statistical Software, 48*, 1-36. http://www.jstatsoft.org/v48/i02/
+Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. *Journal of Statistical Software, 48*, 1-36. <http://www.jstatsoft.org/v48/i02/>
 
-Epskamp, S., Stuber, S. (2017). semPlot: Path Diagrams and Visual Analysis of Various
-  SEM Packages' Output. https://CRAN.R-project.org/package=semPlot
+Epskamp, S., Stuber, S. (2017). semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. <https://CRAN.R-project.org/package=semPlot>
